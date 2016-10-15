@@ -222,6 +222,7 @@ class SerialLoopClass(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
 
+        self.debug = conf['debug']
         self.device = None
         self.tx_buffer = []
         self.tx_pos = 0
@@ -470,8 +471,12 @@ class SerialLoopClass(threading.Thread):
                     if not self.tx_buffer:
                         self._s['ready'] = True
                 elif char == INFO_DOOR_OPEN:
+                    if (self.debug):
+                        print("door open");
                     self._s['info']['door'] = True
                 elif char == INFO_CHILLER_OFF:
+                    if (self.debug):
+                        print("chiller off");
                     self._s['info']['chiller'] = True
                 else:
                     print "ERROR: invalid info flag"
