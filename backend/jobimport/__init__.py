@@ -133,30 +133,28 @@ def read_dxf(dxf_string, tolerance, optimize=True):
 
 def read_ngc(ngc_string, tolerance, optimize=False):
     """Read a gcode file string and convert to dba job."""
-    # ngcReader = NGCReader(tolerance)
-    # res = ngcReader.parse(ngc_string)
-    # # create an dba job from res
-    # # TODO: reader should generate an dba job to begin with
-    # job = {}
-    # if 'boundarys' in res:
-    #     job['vector'] = {}
-    #     vec = job['vector']
-    #     # format: {'#ff0000': [[[x,y], [x,y], ...], [], ..], '#0000ff':[]}
-    #     # colors = []
-    #     paths = []
-    #     for k,v in res['boundarys']:
-    #         # colors.append(k)
-    #         paths.append(v)
-    #     if optimize:
-    #         pathoptimizer.optimize(paths, tolerance)
-    #     vec['paths'] = paths
-    #     # vec['colors'] = colors
-    #     if optimize:
-    #         vec['optimized'] = tolerance
-    # return job
-    print "GCODE reader not implemented."
-    return {}
-
+    ngcReader = NGCReader(tolerance)
+    res = ngcReader.parse(ngc_string)
+    # create an dba job from res
+    # TODO: reader should generate an dba job to begin with
+    job = {}
+    if 'boundarys' in res:
+        job['vector'] = {}
+        vec = job['vector']
+        # format: {'#ff0000': [[[x,y], [x,y], ...], [], ..], '#0000ff':[]}
+        # colors = []
+        paths = []
+        for k,v in res['boundarys']:
+            # colors.append(k)
+            paths.append(v)
+        if optimize:
+            pathoptimizer.optimize(paths, tolerance)
+        vec['paths'] = paths
+        # vec['colors'] = colors
+        # TODO JET what do set this to sans optimization?
+        # if optimize:
+        #     vec['optimized'] = tolerance
+    return job
 
 def get_type(job):
     """Figure out file type from job string."""

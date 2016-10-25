@@ -31,6 +31,7 @@ Complete File Description
   "head": {                      # optional
       "noreturn": True,          # optional, do not return to origin, default: False
       "optimized": 0.08,         # optional, tolerance to which it was optimized, default: 0 (not optimized)
+      "allow_optimize": True,           # optional, whether the polylines may be optimized, default: True
    },
   "passes": [                    # optional
       {
