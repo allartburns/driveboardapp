@@ -7,7 +7,7 @@ import os.path
 import StringIO
 
 
-class NGCReader:
+class NGCParser:
     """Parse subset of G-code that we can implement on the Lasersaur.
        from https://github.com/nortd/lasersaur/wiki/gcode
 
@@ -43,22 +43,24 @@ class NGCReader:
     ? get full status string
     """
 
+
+
     def __init__(self):
 
         self.boundaries = {'#000000':[]}
         self.black_boundaries = self.boundaries['#000000']
-
+        self.re_findall_attribs = re.compile('(S|F|X|Y|Z)(-?[0-9]+\.?[0-9]*(?:e-?[0-9]*)?)').findall
+        self.prev_motion_was_seek = True
+        self.paths = []
+        self.current_path = []
+        self.g0target = []
 
     def parse(self, ngcstring):
 
-        paths = []
-        current_path = []
-        re_findall_attribs = re.compile('(S|F|X|Y|Z)(-?[0-9]+\.?[0-9]*(?:e-?[0-9]*)?)').findall
 
         intensity = 0.0
         feedrate = 1000.0
-        target = [0.0, 0.0, 0.0]
-        prev_motion_was_seek = True
+        self.g0target = [0.0, 0.0, 0.0]
 
 
         lines = ngcstring.split('\n')
@@ -73,39 +75,42 @@ class NGCReader:
             else:
                 self.wontParse(line)
 
-# TODO JET: use json.dumps to convert this to a dba file
-# TODO JET: make a header with all the NGC specific settings
-# TOOD JET: return that header
+        job = {'head':{}, 'passes':[], 'items':[], 'defs':[]}
 
-        print "Done!"
-        self.boundaries = {'#000000':paths}
-        pass_ = ['1', feedrate, '', intensity, '', '#000000']
-        return {'boundarys':self.boundaries}
+        for path in self.paths:
+            job['defs'].append({"kind":"path",
+                                "data":path})
 
-    def parseG0(line):
+        return job
+
+
+    def parseG0(self, line):
         # we parse all the G0 commands but only care about the last
         # one before a cut
-        attribs = re_findall_attribs(line[2:])
+        print("parse G0 " + line);
+        attribs = self.re_findall_attribs(line[2:])
         for attr in attribs:
             if attr[0] == 'X':
-                target[0] = float(attr[1])
+                self.g0target[0] = float(attr[1])
             elif attr[0] == 'Y':
-                target[1] = float(attr[1])
+                self.g0target[1] = float(attr[1])
             elif attr[0] == 'Z':
-                target[2] = float(attr[1])
+                self.g0target[2] = float(attr[1])
             elif attr[0] == 'F':
-                feedrate = float(attr[1])
-        prev_motion_was_seek = True
+                self.feedrate = float(attr[1])
+        self.prev_motion_was_seek = True
         return
 
-    def parseG1(line):
-        if prev_motion_was_seek:
+    def parseG1(self, line):
+        print("parse G1 " + line);
+        if self.prev_motion_was_seek:
             # go to the last G0
-            paths.append([[target[0], target[1], target[2]]])
-            current_path = paths[-1]
-            prev_motion_was_seek = False
+            self.paths.append([[self.g0target[0], self.g0target[1], self.g0target[2]]])
+            self.current_path = self.paths[-1]
+            self.prev_motion_was_seek = False
 
-        attribs = re_findall_attribs(line[2:])
+        target = [0.0, 0.0, 0.0]
+        attribs = self.re_findall_attribs(line[2:])
         for attr in attribs:
             if attr[0] == 'X':
                 target[0] = float(attr[1])
@@ -117,16 +122,16 @@ class NGCReader:
                 intensity = float(attr[1])
             elif attr[0] == 'F':
                 feedrate = float(attr[1])
-        current_path.append([target[0], target[1], target[2]])
+        self.current_path.append([target[0], target[1], target[2]])
         return
 
-    def parseS(line):
-        attribs = re_findall_attribs(line)
+    def parseS(self, line):
+        attribs = self.re_findall_attribs(line)
         for attr in attribs:
             if attr[0] == 'S':
                 intensity = float(attr[1])
         return
 
-    def wontParse(line):
+    def wontParse(self, line):
         return
 

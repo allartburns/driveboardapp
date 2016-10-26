@@ -2,21 +2,21 @@
 
 import io
 
-from dxf_parser import DXFParser
+from ngc_parser import NGCParser
 
 tolerance = 0.08
 preColor = {}
 postColor = {}
 
-fin = open("test.dxf"); 
-dxf_string = fin.read();  
+fin = open("test.ngc"); 
+ngc_string = fin.read();  
 fin.close() 
 
-dxf_string = unicode(dxf_string)
-dxfParser = DXFParser(0.8)
+ngc_string = unicode(ngc_string)
+ngcParser = NGCParser()
 forced_unit = 0
 
-parse_results = dxfParser.parse(dxf_string, forced_unit)
+parse_results = ngcParser.parse(ngc_string)
 
-#print "parsed results: ", parse_results    
+print "parsed results: ", parse_results    
 
