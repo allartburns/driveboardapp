@@ -432,12 +432,13 @@ inline void protocol_idle() {
     if (SENSE_Y2_LIMIT && stop_code != STOPERROR_LIMIT_HIT_Y2) {
       serial_write(STOPERROR_LIMIT_HIT_Y2);
     }
-    if (SENSE_Z1_LIMIT && stop_code != STOPERROR_LIMIT_HIT_Z1) {
-      serial_write(STOPERROR_LIMIT_HIT_Z1);
-    }
-    if (SENSE_Z2_LIMIT && stop_code != STOPERROR_LIMIT_HIT_Z2) {
-      serial_write(STOPERROR_LIMIT_HIT_Z2);
-    }
+
+    // if (SENSE_Z1_LIMIT && stop_code != STOPERROR_LIMIT_HIT_Z1) {
+    //   serial_write(STOPERROR_LIMIT_HIT_Z1);
+    // }
+    // if (SENSE_Z2_LIMIT && stop_code != STOPERROR_LIMIT_HIT_Z2) {
+    //   serial_write(STOPERROR_LIMIT_HIT_Z2);
+    // }
 
     // position, an absolute coord, report relative to current offset
     serial_write_param(INFO_POS_X, stepper_get_position_x()-st.offsets[3*st.offselect+X_AXIS]);
