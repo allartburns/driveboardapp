@@ -18,7 +18,7 @@ import glob
 
 conf = {
     'appname': 'driveboardapp',
-    'version': '16.07-alpha',
+    'version': '16.10-alpha',
     'company_name': 'com.nortd.labs',
     'network_host': '',                    # '' for all nics
     'network_port': 4444,
@@ -97,16 +97,21 @@ conf['stordir'] = directory
 
 
 ### auto-check hardware
-# default to beaglebone
-conf['hardware'] = 'beaglebone'
-### check if running on RaspberryPi
-try:
-    import RPi.GPIO
-    conf['hardware'] = 'raspberrypi'
-except ImportError:
-    pass
+#
+conf['hardware'] = 'standard'
+if sys.platform == "linux2":
+    try:
+        import RPi.GPIO
+        conf['hardware'] = 'raspberrypi'
+    except ImportError:
+        # os.uname() on BBB:
+        # ('Linux', 'lasersaur', '3.8.13-bone20',
+        #  '#1 SMP Wed May 29 06:14:59 UTC 2013', 'armv7l')
+        if os.uname()[4].startswith('arm'):
+            conf['hardware'] = 'beaglebone'
 #
 ###
+
 
 
 
