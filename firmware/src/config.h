@@ -28,6 +28,7 @@
 // #define DEBUG_IGNORE_SENSORS  // set for debugging
 // #define NOT_GEARED
 // #define ENABLE_3AXES
+#undef ENABLE_3AXES // in case it is being set somewhere else
 
 
 #define CONFIG_X_STEPS_PER_MM 88.88888888 //microsteps/mm
