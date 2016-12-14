@@ -28,6 +28,7 @@
 // #define DEBUG_IGNORE_SENSORS  // set for debugging
 // #define NOT_GEARED
 // #define ENABLE_3AXES
+#undef ENABLE_3AXES // in case it is being set somewhere else
 
 
 #define CONFIG_X_STEPS_PER_MM 88.88888888 //microsteps/mm
@@ -83,7 +84,11 @@
 
 
 #define SENSE_MASK ((1<<CHILLER_BIT)|(1<<DOOR_BIT))
+#ifdef ENABLE_3AXIS
+#define LIMIT_MASK ((1<<X1_LIMIT_BIT)|(1<<X2_LIMIT_BIT)|(1<<Y1_LIMIT_BIT)|(1<<Y2_LIMIT_BIT)|(1<<Z1_LIMIT_BIT)|(1<<Z2_LIMIT_BIT))
+#else
 #define LIMIT_MASK ((1<<X1_LIMIT_BIT)|(1<<X2_LIMIT_BIT)|(1<<Y1_LIMIT_BIT)|(1<<Y2_LIMIT_BIT))
+#endif
 #define STEPPING_MASK ((1<<X_STEP_BIT)|(1<<Y_STEP_BIT)|(1<<Z_STEP_BIT))
 #define DIRECTION_MASK ((1<<X_DIRECTION_BIT)|(1<<Y_DIRECTION_BIT)|(1<<Z_DIRECTION_BIT))
 

@@ -242,6 +242,7 @@ ISR(TIMER1_COMPA_vect) {
       stepper_request_stop(STOPERROR_LIMIT_HIT_Y2);
       busy = false;
       return;
+#ifdef ENABLE_3AXIS
     } else if (SENSE_Z1_LIMIT) {
       stepper_request_stop(STOPERROR_LIMIT_HIT_Z1);
       busy = false;
@@ -251,6 +252,9 @@ ISR(TIMER1_COMPA_vect) {
       busy = false;
       return;
     }
+ #else
+    }
+#endif // ENABLE_3AXIS
   #endif
 
   // pulse steppers
@@ -562,7 +566,9 @@ inline static void homing_cycle(bool x_axis, bool y_axis, bool z_axis, bool reve
   uint8_t limit_bits;
   uint8_t x_overshoot_count = 6;
   uint8_t y_overshoot_count = 6;
+#ifdef ENABLE_3AXIS
   uint8_t z_overshoot_count = 6;
+#endif
 
   if (x_axis) { out_bits |= (1<<X_STEP_BIT); }
   if (y_axis) { out_bits |= (1<<Y_STEP_BIT); }
