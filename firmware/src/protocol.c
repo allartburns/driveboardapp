@@ -432,17 +432,21 @@ inline void protocol_idle() {
     if (SENSE_Y2_LIMIT && stop_code != STOPERROR_LIMIT_HIT_Y2) {
       serial_write(STOPERROR_LIMIT_HIT_Y2);
     }
+ #ifdef ENABLE_3AXIS
     if (SENSE_Z1_LIMIT && stop_code != STOPERROR_LIMIT_HIT_Z1) {
       serial_write(STOPERROR_LIMIT_HIT_Z1);
     }
     if (SENSE_Z2_LIMIT && stop_code != STOPERROR_LIMIT_HIT_Z2) {
       serial_write(STOPERROR_LIMIT_HIT_Z2);
     }
+#endif
 
     // position, an absolute coord, report relative to current offset
     serial_write_param(INFO_POS_X, stepper_get_position_x()-st.offsets[3*st.offselect+X_AXIS]);
     serial_write_param(INFO_POS_Y, stepper_get_position_y()-st.offsets[3*st.offselect+Y_AXIS]);
+#ifdef ENABLE_3AXIS
     serial_write_param(INFO_POS_Z, stepper_get_position_z()-st.offsets[3*st.offselect+Z_AXIS]);
+#endif
 
     if (!rx_buffer_underruns_reported) {
       serial_write_param(INFO_BUFFER_UNDERRUN, rx_buffer_underruns);
