@@ -8,7 +8,7 @@ tolerance = 0.08
 preColor = {}
 postColor = {}
 
-fin = open("test.ngc"); 
+fin = open("test-speeds.ngc"); 
 ngc_string = fin.read();  
 fin.close() 
 

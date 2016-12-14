@@ -18,5 +18,22 @@ forced_unit = 0
 
 parse_results = dxfParser.parse(dxf_string, forced_unit)
 
-#print "parsed results: ", parse_results    
+for color in parse_results['boundaries']:
+    if len(parse_results['boundaries'][color]) > 0:
+        thisColor = parse_results['boundaries'][color]
+        preColor[color] = len(thisColor)
+
+optimize_all(parse_results['boundaries'], tolerance)
+
+for color in parse_results['boundaries']:
+    if len(parse_results['boundaries'][color]) > 0:
+        thisColor = parse_results['boundaries'][color]
+        postColor[color] = len(thisColor)
+
+print("pre/post optimization entity count")
+print("color\tpre\tpost")
+for color in preColor:
+    print("%s\t%s\t%s" % (color, preColor[color], postColor[color]))
+    
+
 
