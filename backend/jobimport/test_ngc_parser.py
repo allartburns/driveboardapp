@@ -8,7 +8,7 @@ tolerance = 0.08
 preColor = {}
 postColor = {}
 
-fin = open("test-speeds.ngc"); 
+fin = open("test.ngc"); 
 ngc_string = fin.read();  
 fin.close() 
 
@@ -18,5 +18,5 @@ forced_unit = 0
 
 parse_results = ngcParser.parse(ngc_string)
 
-print "parsed results: ", parse_results    
+print (parse_results)
 

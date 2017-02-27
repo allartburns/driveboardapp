@@ -4,7 +4,7 @@ import json
 from config import conf
 from svg_reader import SVGReader
 from dxf_parser import DXFParser
-from ngc_reader import NGCReader
+from ngc_parser import NGCParser
 import pathoptimizer
 
 
@@ -54,8 +54,8 @@ def read_svg(svg_string, workspace, tolerance, forced_dpi=None, optimize=True):
     res = svgReader.parse(svg_string, forced_dpi)
     # {'boundarys':b, 'dpi':d, 'lasertags':l, 'rasters':r}
 
-    # create an dba job from res
-    # TODO: reader should generate an dba job to begin with
+    # create a dba job from res
+    # TODO: reader should generate a dba job to begin with
     job = {'head':{}, 'passes':[], 'items':[], 'defs':[]}
     if 'rasters' in res:
         for raster in res['rasters']:
@@ -135,8 +135,8 @@ def read_ngc(ngc_string, tolerance, optimize=False):
     """Read a gcode file string and convert to dba job."""
     ngcReader = NGCReader(tolerance)
     res = ngcReader.parse(ngc_string)
-    # create an dba job from res
-    # TODO: reader should generate an dba job to begin with
+    # create a dba job from res
+    # TODO: reader should generate a dba job to begin with
     job = {}
     if 'boundarys' in res:
         job['vector'] = {}
