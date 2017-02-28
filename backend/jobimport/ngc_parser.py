@@ -6,7 +6,6 @@ import re
 import os.path
 import StringIO
 
-
 class NGCParser:
     """Parse subset of G-code that we can implement on the Lasersaur.
 
@@ -48,19 +47,17 @@ class NGCParser:
     ~ contine, exit pause mode
     ? get full status string
 
+TODO: 
+- implement air control
+- test with a bunch of different ngc files
+- handle g-code comments
 
-TODO:
-- every time we see a intensity or speed change
-  (note: air_assist is automatically on/off for lasersaur)
-    - close current path
-    - find/create a corresponding passes entry with a matching color
-      (so we can share DBA files with lasersaur frontend)
-    - start a new path
     """
 
-    def __init__(self):
+    def __init__(self, tolerance):
 
-        self.debug = True
+        self.debug = False
+        self.version = 0001
   
         self.colors = ['#FF0000',
                        '#FFFF00',
@@ -71,21 +68,24 @@ TODO:
                        '#000000']
 
         self.re_findall_attribs = re.compile('(S|F|X|Y|Z)(-?[0-9]+\.?[0-9]*(?:e-?[0-9]*)?)').findall
-        self.previousMotionSeek = True
+        self.previousMotionSeek = False
 
         self.currentPath = []
-        self.currentRate = 0
-        self.currentIntensity = 0.0
+        self.intensity = 0
         self.traverseRate = 0
-        
-        self.g0target = []
+        self.feedRate = 0
+
+        self.g0target = [0.0, 0.0, 0.0]
 
         # array of paths by item
-        self.pathsByRate = {0:[]}
+#        self.pathsByIndex = {0:[]}
+        self.pathsByIndex = {}
+        self.currentIndex = -1
 
         # list of pass characteristics, format is
         # { path index, feedrate, intensity }
-        self.passes = []
+#        self.passesByIndex = {0:{}}
+        self.passesByIndex = {}
 
         # stats for this job
         #  bounding box, len
@@ -95,12 +95,6 @@ TODO:
 
         
     def parse(self, ngcstring):
-
-        self.intensity = 0.0
-        self.feedRate = 0.0
-        self.g0target = [0.0, 0.0, 0.0]
-
-
         lines = ngcstring.split('\n')
         for line in lines:
             line = line.replace(' ', '')
@@ -113,113 +107,124 @@ TODO:
             else:
                 self.wontParse(line)
 
+        #clean up the final parsed items if there was not
+        #a layer change at the end of the ngc
+        self.updatePathsByIndex();
+
+        if 0:
+            # check to see if there was a final seek motion and update
+            # the final pass
+            if self.previousMotionSeek:
+                # go to the last G0
+                self.currentPath.append([self.g0target[0], self.g0target[1], self.g0target[2]])
+                self.previousMotionSeek = False
+                self.updatePathsByIndex();
+                self.currentIndex += 1
+            
         job = {'head':{}, 'passes':[], 'items':[], 'defs':[]}
 
-        job['head']['optimized'] = 0.0
-        job['head']['allow_optimize'] = False
+        job['head']["optimized"] = 0.08
+        job['head']["allow_optimize"] = False
 
-        for path in self.pathsByRate:
-            builtPath = []
-            for p in self.pathsByRate[path]:
-                for p1 in p:
-                    builtPath.append(p1)
-            defStr = {"kind":"path","data":builtPath}
-            job['defs'].append(defStr)
-
-        i = 0
-        for index in self.passes:
-            job['passes'].append(index)
-            job['items'].append({'color': self.colors[i], 'def': i})
-            i += 1
-
-
+        for i in range(0, self.currentIndex):
+            defStr = {"kind":"path","data":self.pathsByIndex[i]}
+            job["defs"].append(defStr)
+            job["passes"].append(self.passesByIndex[i])
+            job["items"].append({"color": self.colors[i % len(self.colors)], 'def': i})
         return job
 
 
     def parseG0(self, line):
-        
         if len(self.currentPath) > 0:
-            self.pathsByRate[self.currentRate].append(self.currentPath)
-            self.currentPath = []
-            
+            self.updatePathsByIndex()
+
         # we parse all the G0 commands but only care about the last
-        # one before a cut
-        #print("#parse G0 " + line)
+        # one before a cut or the last before the end of the ngc file
         attribs = self.re_findall_attribs(line[2:])
         for attr in attribs:
             if attr[0] == 'X':
                 self.g0target[0] = float(attr[1])
+                self.previousMotionSeek = True
             elif attr[0] == 'Y':
                 self.g0target[1] = float(attr[1])
+                self.previousMotionSeek = True
             elif attr[0] == 'Z':
                 self.g0target[2] = float(attr[1])
+                self.previousMotionSeek = True
             elif attr[0] == 'F':
                 self.adjustTraverseRate(float(attr[1]))
-        self.previousMotionSeek = True
 
 
     def parseG1(self, line):
-        #print("#parse G1 " + line)
         target = [0.0, 0.0, 0.0]
         attribs = self.re_findall_attribs(line[2:])
 
-        if self.previousMotionSeek and (attribs[0][0] != "F"):
+        if self.previousMotionSeek:
             # go to the last G0
             self.currentPath.append([self.g0target[0], self.g0target[1], self.g0target[2]])
             self.previousMotionSeek = False
 
         for attr in attribs:
-            if attr[0] == 'F':
-                self.adjustFeedRate(float(attr[1]))
-                return
             if attr[0] == 'X':
                 target[0] = float(attr[1])
             elif attr[0] == 'Y':
                 target[1] = float(attr[1])
             elif attr[0] == 'Z':
                 target[2] = float(attr[1])
-        self.currentPath.append([target[0], target[1], target[2]])
+            elif attr[0] == 'F':
+                self.adjustFeedRate(float(attr[1]))
+        if target != [0.0, 0.0, 0.0]:
+            self.currentPath.append([target[0], target[1], target[2]])
+
 
     def adjustFeedRate(self, newFeedRate):
         if self.feedRate != newFeedRate:
             self.feedRate = newFeedRate
         else:
             if self.debug:
-                print("#adjustFeedRate ignoring duplicate speed")
+                print("#adjustFeedRate ignoring duplicate speed %d " % newFeedRate)
 
     def adjustTraverseRate(self, newTraverseRate):
         if self.traverseRate == newTraverseRate:
             if self.debug:
-                print("#adjustTraverseRate ignoring duplicate speed")
+                print("#adjustTraverseRate ignoring duplicate speed  %d " % newTraverseRate)
         else:
             self.traverseRate = newTraverseRate
+
                 
     def startNewPass(self):
-        if len(self.currentPath) > 0:
-            print("#TODO close current path")
 
-        # find/create a corresponding passes entry with a matching color
-        # (so we can share DBA files with lasersaur frontend)
-        passLen = len(self.passes)
-        
-        if passLen > 0:
-            for p in self.passes:
-                if self.intensity == p["intensity"] and self.feedRate == p["feedrate"]:
-                    print("#found matching speed/intensity rate index %d" % p["items"])
-                else:
-                    i = []
-                    i.append(len(self.passes))
-                    self.passes.append({"items":i, "intensity":self.intensity, "feedrate":self.feedRate, "pxsize":0.4})
-        else:
-            self.passes.append({"items":[0], "intensity":self.intensity, "feedrate":self.feedRate, "pxsize":0.4})
+        if self.currentIndex >= 0:
+            self.updatePathsByIndex()
+
+        self.currentIndex += 1
+        if self.debug:
+            print("#startnewpass")
+            print ("#starting new pass intensity %d index %d" % (self.intensity, self.currentIndex))
+ 
+        i = []
+        i.append(self.currentIndex)
+        self.passesByIndex[self.currentIndex] = {"items":i, "intensity":self.intensity, "seekrate":self.traverseRate, "feedrate":self.feedRate, "pxsize":0.4}
+        self.pathsByIndex[self.currentIndex] = []
+
+
+    def updatePathsByIndex(self):
+        if len(self.currentPath) > 0:
+            if self.currentIndex not in self.pathsByIndex:
+                self.pathsByIndex[self.currentIndex] = self.currentPath
+            else:
+                self.pathsByIndex[self.currentIndex].append(self.currentPath)
+            self.currentPath = []
 
 
     def parseS(self, line):
         attribs = self.re_findall_attribs(line)
         for attr in attribs:
             if attr[0] == 'S':
-                intensity = float(attr[1])
-                if intensity == self.currentIntensity:
+                intensity = int((float(attr[1]) / float(255)) * 100)
+                if self.debug:
+                    print("intensity parsed %d" % intensity)
+                if intensity == self.intensity:
                     return
                 else:
                     self.intensity = intensity
