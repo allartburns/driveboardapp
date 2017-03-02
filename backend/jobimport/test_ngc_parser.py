@@ -13,7 +13,7 @@ ngc_string = fin.read();
 fin.close() 
 
 ngc_string = unicode(ngc_string)
-ngcParser = NGCParser()
+ngcParser = NGCParser(tolerance)
 forced_unit = 0
 
 parse_results = ngcParser.parse(ngc_string)
