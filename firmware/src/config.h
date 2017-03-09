@@ -23,7 +23,7 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
-#define VERSION 1702               // int or float
+#define VERSION 1703               // int or float
 #define BAUD_RATE 57600
 // #define ENABLE_3AXES            // enable/disable 3-axis mode (vs 2-axis)
 #define ENABLE_LASER_INTERLOCKS    // enable/disable all interlocks
@@ -77,7 +77,7 @@
   #define AUX_ASSIST_BIT        6           // Arduino: 6
 #else
   #define LASER_PWM_BIT         6           // Arduino: 6
-  #define AUX_ASSIST_BIT        5           // Arduino: 5
+  #define AUX_ASSIST_BIT        7           // Arduino: 7
 #endif
 
 #define LIMIT_DDR               DDRC
