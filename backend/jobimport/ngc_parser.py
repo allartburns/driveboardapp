@@ -49,6 +49,10 @@ class NGCParser:
     ~ contine, exit pause mode
     ? get full status string
 
+    NOT IN LASERSAUR
+    ( start of a comment line
+
+
 TODO: 
 - implement air control
 - test with a bunch of different ngc files
@@ -98,6 +102,10 @@ TODO:
         for line in lines:
             line = line.replace(' ', '')
             if len(line) == 0:
+                continue
+            if line.find('(') > -1:
+                if self.debug:
+                    print("#ignoring comment line %s:" % line)
                 continue
             if line.startswith('G0'):
                 self.parseG0(line)
