@@ -25,6 +25,7 @@ from encodings import mac_roman  # explicit for pyinstaller
 
 
 conf = {
+    'debug': True,
     'appname': 'driveboardapp',
     'version': '17.02-beta',
     'company_name': 'com.nortd.labs',
@@ -113,7 +114,7 @@ conf['stordir'] = directory
 
 ### auto-check hardware
 #
-conf['hardware'] = 'standard'
+conf['hardware'] = 'beaglebone'
 if sys.platform == "linux2":
     try:
         import RPi.GPIO
