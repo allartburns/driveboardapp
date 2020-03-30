@@ -278,6 +278,9 @@ class DXFParser:
         cy = self.unitize(entity.center[1])
         r = self.unitize(entity.radius)
         path = []
+	
+	if self.debug:
+	    print("addCircle x %d y %d r %d" % (cx, cy, r))
 
         self.makeArc(path, cx-r, cy, r, r, 0, 0, 0, cx, cy+r)
         self.makeArc(path, cx, cy+r, r, r, 0, 0, 0, cx+r, cy)
@@ -437,8 +440,12 @@ class DXFParser:
     def validateBoundaries(self):
         for color in self.colorLayers:
             if len(self.colorLayers[color]) > 0:
+		if self.debug:
+		    print("validating color %s" % color)
                 thisColor = self.colorLayers[color]
                 for i in range(0, len(thisColor)):
+		    if self.debug:
+		        print("i: %d" % i)
                     if thisColor[i][0][0] < 0 or thisColor[i][0][0] > self.bedwidth[0]:
                         
                         raise RuntimeError("point outside of bounds x0 ",  thisColor[i][0][0])
@@ -490,6 +497,8 @@ class DXFParser:
 
     def setMinMax(self, x, y):
         if x < self.x_min:
+	    if self.debug:
+	        print("set x_min %d, %d" % (x, y))
             self.x_min = x
         elif x > self.x_max:
             self.x_max = x
