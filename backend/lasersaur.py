@@ -40,7 +40,8 @@ __author__  = 'Stefan Hechenberger <stefan@nortd.com>'
 thislocation = os.path.dirname(os.path.realpath(__file__))
 
 logging.basicConfig()
-logging.getLogger().setLevel(logging.ERROR)
+#logging.getLogger().setLevel(logging.ERROR)
+logging.getLogger().setLevel(logging.INFO)
 
 
 class Lasersaur(object):
