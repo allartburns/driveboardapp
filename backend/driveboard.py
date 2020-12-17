@@ -524,7 +524,7 @@ class SerialLoopClass(threading.Thread):
                 print ord(char)
                 print char
                 print "ignoring ERROR: invalid marker"
-                #self.pdata_count = 0
+                self.pdata_count += 1
 
 
 
